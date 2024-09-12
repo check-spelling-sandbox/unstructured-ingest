@@ -92,17 +92,15 @@ jobs:
     steps:
       - name: check-spelling
         id: spelling
-        uses: check-spelling/check-spelling@prerelease
+        uses: check-spelling/check-spelling@v0.0.22
         with:
           suppress_push_for_open_pull_request: ${{ github.actor != 'dependabot[bot]' && 1 }}
           checkout: true
           check_file_names: 1
-          spell_check_this: check-spelling/spell-check-this@prerelease
           post_comment: 0
           use_magic_file: 1
           report-timing: 1
           warnings: bad-regex,binary-file,deprecated-feature,ignored-expect-variant,large-file,limited-references,no-newline-at-eof,noisy-file,non-alpha-in-dictionary,token-is-substring,unexpected-line-ending,whitespace-in-dictionary,minified-file,unsupported-configuration,no-files-to-check,unclosed-block-ignore-begin,unclosed-block-ignore-end
-          experimental_apply_changes_via_bot: 1
           use_sarif: ${{ (!github.event.pull_request || (github.event.pull_request.head.repo.full_name == github.repository)) && 1 }}
           check_extra_dictionaries: ''
           extra_dictionaries: |
@@ -123,27 +121,3 @@ jobs:
             cspell:k8s/dict/k8s.txt
             cspell:django/dict/django.txt
             cspell:mnemonics/src/mnemonics.txt
-
-  update:
-    name: Update PR
-    permissions:
-      contents: write
-      pull-requests: write
-      actions: read
-    runs-on: ubuntu-latest
-    if: ${{
-      github.event_name == 'issue_comment' &&
-      github.event.issue.pull_request &&
-      contains(github.event.comment.body, '@check-spelling-bot apply') &&
-      contains(github.event.comment.body, 'https://')
-      }}
-    concurrency:
-      group: spelling-update-${{ github.event.issue.number }}
-      cancel-in-progress: false
-    steps:
-      - name: apply spelling updates
-        uses: check-spelling/check-spelling@prerelease
-        with:
-          experimental_apply_changes_via_bot: 1
-          checkout: true
-          ssh_key: "${{ secrets.CHECK_SPELLING }}"
